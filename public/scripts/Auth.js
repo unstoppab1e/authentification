@@ -4,6 +4,30 @@ import Router from "./Router.js";
 const Auth = {
     isLoggedIn: false,
     account: null,
+    postLogin: async (response, user) => {
+        if(response.ok){
+            Auth.isLoggedIn = true;
+            Auth.account = user;
+            Auth.updateStatus();
+            Router.go("/account");
+        } else{
+            alert(response.message);
+        }
+
+        if(window.PasswordCredential && user.password) {
+            const credentials = new PasswordCredential({
+                id: user.email,
+                name: user.name,
+                password: user.password,
+            });
+            try{
+                navigator.credentials.store(credentials);
+            } catch(e){
+                console.log(e)
+            }
+            
+        }
+    },
     register: async (event) => {
         event.preventDefault();
         const user = {
@@ -12,16 +36,39 @@ const Auth = {
             password: document.getElementById("register_password").value,
         }
         const response = await API.register(user);
-        console.log(response);
+        Auth.postLogin(response, user);
     },
     login: async (event) => {
-        event.preventDefault();
+        if(event) event.preventDefault();
         const credentials = {
             email: document.getElementById("login_email").value,
             password: document.getElementById("login_password").value,
         }
         const response = await API.login(credentials);
-        console.log(response);
+        Auth.postLogin(response, {
+            ...credentials,
+            name: response.name
+        });
+    },
+    autoLogin: async () => {
+        if(window.PasswordCredential) {
+            const credentials = await navigator.credentials.get({
+                password: true,
+            });            
+            document.getElementById("login_email").value = credentials.id;
+            document.getElementById("login_password").value = credentials.password;
+            Auth.login();
+            console.log(credentials);
+        }
+    },
+    logout: async () => {
+        Auth.isLoggedIn = false;
+        Auth.account = null;
+        Auth.updateStatus();
+        Router.go("/");
+        if(window.PasswordCredential) {
+            navigator.credentials.preventSilentAccess();
+        }
     },
     updateStatus() {
         if (Auth.isLoggedIn && Auth.account) {
@@ -53,6 +100,7 @@ const Auth = {
     },
 }
 Auth.updateStatus();
+Auth.autoLogin();
 
 export default Auth;
 

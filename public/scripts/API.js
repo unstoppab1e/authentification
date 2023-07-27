@@ -1,12 +1,12 @@
 const API = {
     endpoint: "/auth/",
     // ADD HERE ALL THE OTHER API FUNCTIONS
-    login: async (email) => {
-        const response = await API.makePostRequest(API.endpoint + "login", {email});
+    login: async (user) => {
+        const response = await API.makePostRequest(API.endpoint + "login", user);
         return response;
     },
-    register: async (name) => {
-        const response = await API.makePostRequest(API.endpoint + "register", {name});
+    register: async (user) => {
+        const response = await API.makePostRequest(API.endpoint + "register", user);
         return response;
     },
     makePostRequest: async (url, data) => {

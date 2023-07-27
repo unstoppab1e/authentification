@@ -15,7 +15,7 @@ app.use(express.json())
 const adapter = new JSONFile(__dirname + '/auth.json');
 const db = new Low(adapter);
 await db.read();
-db.data = db.data || { users: [] }
+db.data ||= { users: [] }
 
 const rpID = "localhost";
 const protocol = "http";
@@ -28,10 +28,10 @@ app.use(express.urlencoded({
   extended: true
 }));
 
-const findUser = (email) => {
-  const result = db.data.users.find(user => user.email === email);
-  if (result.length === 0) return undefined;
-  return result[0];
+function findUser(email) {
+  const results = db.data.users.filter(u => u.email == email);
+  if (results.length==0) return undefined;
+  return results[0];
 }
 
 // ADD HERE THE REST OF THE ENDPOINTS
@@ -50,7 +50,7 @@ app.post('/auth/login', async (req, res) => {
   }
 });
 
-app.post('auth/register', async (req, res) => {
+app.post('/auth/register', async (req, res) => {
   const salt = bcrypt.genSaltSync(10);
   const hashedPassword = bcrypt.hashSync(req.body.password, salt);
 
