@@ -35,6 +35,31 @@ function findUser(email) {
 }
 
 // ADD HERE THE REST OF THE ENDPOINTS
+app.post('/auth/login-google', async (req, res) => {
+  let jwt = jwtJsDecode.jwtDecode(req.body.credential.credential);
+  let user = {
+    email: jwt.payload.email,
+    name: jwt.payload.given_name + " " + jwt.payload.family_name,
+    password: false
+  }
+  const userExists = findUser(user.email);
+  if(userExists) {
+    user.federated = {
+      google: jwt.payload.aud
+    }
+    db.write();
+    res.send({ok: true, name: user.name, email: user.email});
+  } else{
+    db.data.users.push({
+      ...user, 
+      federated: {
+        google: jwt.payload.aud
+      }});
+    db.write();
+    res.send({ok: true, name: user.name, email: user.email});
+  }
+});
+
 app.post('/auth/login', async (req, res) => {
   const userFound = findUser(req.body.email);
   if(userFound) {
